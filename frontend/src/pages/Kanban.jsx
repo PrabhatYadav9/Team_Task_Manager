@@ -4,6 +4,7 @@ import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@d
 import { CSS } from '@dnd-kit/utilities'
 import { FiCalendar, FiCheckCircle, FiClock, FiUser } from 'react-icons/fi'
 import api from '../services/apiClient'
+import useStore from '../stores/useStore'
 
 const columns = [
   { id: 'todo', label: 'To Do', tone: 'from-slate-500 to-slate-400' },
@@ -147,6 +148,85 @@ function TaskModal({ task, onClose, onStatusChange }) {
   )
 }
 
+function CreateTaskModal({ open, projectName, onClose, onSubmit, form, setForm, loading }) {
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-[2rem] border border-white/10 bg-white text-slate-900 shadow-2xl dark:bg-[#071028] dark:text-white">
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-6 py-4 dark:border-white/10">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">Create task</p>
+            <h3 className="mt-1 text-2xl font-semibold">New task for {projectName}</h3>
+          </div>
+          <button onClick={onClose} className="rounded-full border border-slate-200 px-3 py-1.5 text-sm text-slate-500 transition hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/5">
+            Close
+          </button>
+        </div>
+
+        <form onSubmit={onSubmit} className="grid gap-4 px-6 py-6 md:grid-cols-[1.4fr_1fr]">
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Title</label>
+              <input
+                value={form.title}
+                onChange={(e) => setForm((current) => ({ ...current, title: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-transparent px-4 py-3 outline-none dark:border-white/10"
+                placeholder="Enter task title"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-transparent px-4 py-3 outline-none dark:border-white/10"
+                rows={5}
+                placeholder="Describe the task"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4 rounded-3xl bg-slate-50 p-4 dark:bg-white/5">
+            <div>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Status</label>
+              <select
+                value={form.status}
+                onChange={(e) => setForm((current) => ({ ...current, status: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none dark:border-white/10 dark:bg-[#071028]"
+              >
+                <option value="todo">To Do</option>
+                <option value="in-progress">In Progress</option>
+                <option value="done">Done</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Due date</label>
+              <input
+                type="date"
+                value={form.dueDate}
+                onChange={(e) => setForm((current) => ({ ...current, dueDate: e.target.value }))}
+                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none dark:border-white/10 dark:bg-[#071028]"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-4 w-full rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-400 px-4 py-3 text-sm font-semibold text-white shadow-card transition hover:shadow-soft disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? 'Creating...' : 'Create task'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
 function InfoPill({ label, value }) {
   return (
     <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 dark:border-white/10 dark:bg-white/5">
@@ -157,10 +237,14 @@ function InfoPill({ label, value }) {
 }
 
 export default function Kanban() {
+  const user = useStore((state) => state.user)
   const [projects, setProjects] = React.useState([])
   const [selectedProjectId, setSelectedProjectId] = React.useState('')
   const [taskGroups, setTaskGroups] = React.useState({ todo: [], 'in-progress': [], done: [] })
   const [activeTask, setActiveTask] = React.useState(null)
+  const [showCreateTaskModal, setShowCreateTaskModal] = React.useState(false)
+  const [createTaskForm, setCreateTaskForm] = React.useState({ title: '', description: '', status: 'todo', dueDate: '' })
+  const [creatingTask, setCreatingTask] = React.useState(false)
   const [loading, setLoading] = React.useState(true)
   const [savingTaskId, setSavingTaskId] = React.useState(null)
 
@@ -268,6 +352,34 @@ export default function Kanban() {
     await persistMove(active.id, destinationStatus)
   }
 
+  const handleCreateTask = async (event) => {
+    event.preventDefault()
+
+    if (!selectedProjectId) return
+
+    setCreatingTask(true)
+    try {
+      const payload = {
+        ...createTaskForm,
+        projectId: selectedProjectId,
+        dueDate: createTaskForm.dueDate || undefined,
+      }
+
+      const { data } = await api.post('/tasks', payload)
+      const createdTask = data.data
+
+      setTaskGroups((current) => ({
+        ...current,
+        [createdTask.status]: [createdTask, ...current[createdTask.status]],
+      }))
+
+      setCreateTaskForm({ title: '', description: '', status: 'todo', dueDate: '' })
+      setShowCreateTaskModal(false)
+    } finally {
+      setCreatingTask(false)
+    }
+  }
+
   const selectedProject = projects.find((project) => project._id === selectedProjectId)
 
   return (
@@ -280,17 +392,29 @@ export default function Kanban() {
 
         <div className="w-full max-w-sm">
           <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Project filter</label>
-          <select
-            value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 dark:border-white/10 dark:bg-[#071028] dark:text-white"
-          >
-            {projects.map((project) => (
-              <option key={project._id} value={project._id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex gap-3">
+            <select
+              value={selectedProjectId}
+              onChange={(e) => setSelectedProjectId(e.target.value)}
+              className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 dark:border-white/10 dark:bg-[#071028] dark:text-white"
+            >
+              {projects.map((project) => (
+                <option key={project._id} value={project._id}>
+                  {project.name}
+                </option>
+              ))}
+            </select>
+
+            {user?.role === 'Admin' && selectedProjectId ? (
+              <button
+                type="button"
+                onClick={() => setShowCreateTaskModal(true)}
+                className="shrink-0 rounded-2xl bg-gradient-to-r from-indigo-500 to-cyan-400 px-4 py-3 text-sm font-semibold text-white shadow-card transition hover:shadow-soft"
+              >
+                New Task
+              </button>
+            ) : null}
+          </div>
         </div>
       </div>
 
@@ -333,6 +457,16 @@ export default function Kanban() {
           }}
         />
       ) : null}
+
+      <CreateTaskModal
+        open={showCreateTaskModal}
+        projectName={selectedProject?.name || 'project'}
+        onClose={() => setShowCreateTaskModal(false)}
+        onSubmit={handleCreateTask}
+        form={createTaskForm}
+        setForm={setCreateTaskForm}
+        loading={creatingTask}
+      />
     </div>
   )
 }

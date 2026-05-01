@@ -19,6 +19,11 @@ export default function Dashboard() {
   const [stats, setStats] = React.useState(null)
   const [projects, setProjects] = React.useState([])
   const [selectedProject, setSelectedProject] = React.useState('')
+  const [chartMounted, setChartMounted] = React.useState(false)
+
+  React.useEffect(() => {
+    setChartMounted(true)
+  }, [])
 
   React.useEffect(() => {
     const load = async () => {
@@ -68,28 +73,32 @@ export default function Dashboard() {
         <StatCard title="Done" value={stats?.doneTasks ?? 0} color="green" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 p-4 bg-white dark:bg-[#071028] rounded-2xl shadow-card">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
+        <div className="lg:col-span-2 min-w-0 p-4 bg-white dark:bg-[#071028] rounded-2xl shadow-card overflow-hidden">
           <h3 className="font-semibold mb-4">Activity</h3>
-          <div style={{ height: 240 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.6} />
-                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Area type="monotone" dataKey="tasks" stroke="#7c3aed" fillOpacity={1} fill="url(#colorUv)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-[240px] min-w-0">
+            {chartMounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data}>
+                  <defs>
+                    <linearGradient id="colorUv" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#7c3aed" stopOpacity={0.6} />
+                      <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip />
+                  <Area type="monotone" dataKey="tasks" stroke="#7c3aed" fillOpacity={1} fill="url(#colorUv)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full w-full rounded-2xl bg-slate-100 dark:bg-white/5" />
+            )}
           </div>
         </div>
 
-        <div className="p-4 bg-white dark:bg-[#071028] rounded-2xl shadow-card">
+        <div className="min-w-0 p-4 bg-white dark:bg-[#071028] rounded-2xl shadow-card">
           <h3 className="font-semibold mb-4">Recent Activity</h3>
           <div className="space-y-3">
             {(stats?.overdueTasks || []).slice(0, 4).map((task) => (

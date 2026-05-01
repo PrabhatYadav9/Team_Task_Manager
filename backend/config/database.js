@@ -1,11 +1,33 @@
 const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+
+let memoryServer;
+let usingFallback = false;
+
+const getFallbackUri = async () => {
+  if (!memoryServer) {
+    memoryServer = await MongoMemoryServer.create();
+  }
+
+  return memoryServer.getUri('team-task-manager');
+};
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/team-task-manager', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    const primaryUri = process.env.MONGO_URI || 'mongodb://localhost:27017/team-task-manager';
+
+    let conn;
+    try {
+      conn = await mongoose.connect(primaryUri);
+      usingFallback = false;
+    } catch (primaryError) {
+      console.warn(`Primary MongoDB connection failed: ${primaryError.message}`);
+      const fallbackUri = await getFallbackUri();
+      conn = await mongoose.connect(fallbackUri);
+      console.log('Connected to in-memory MongoDB fallback');
+      usingFallback = true;
+    }
+
     console.log(`MongoDB connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
@@ -13,5 +35,7 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
+
+connectDB.usingFallback = () => usingFallback;
 
 module.exports = connectDB;
