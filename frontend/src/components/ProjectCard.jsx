@@ -1,21 +1,36 @@
 import React from 'react'
+import { motion } from 'framer-motion'
+import { FiUsers, FiCheckSquare } from 'react-icons/fi'
 
-export default function ProjectCard({project}){
+export default function ProjectCard({ project }) {
+  const progress = project.progress || 0
+
   return (
-    <div className="p-4 bg-white dark:bg-[#071028] rounded-2xl shadow-card card-hover border border-slate-200/5">
-      <div className="flex items-start justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">{project.title}</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{project.description || 'No description yet'}</p>
-        </div>
-        <div className="text-sm text-slate-400">{project.tasks?.length || 0} tasks</div>
+    <motion.div 
+      whileHover={{ scale: 1.02, y: -2 }}
+      className="glass-card rounded-2xl p-5 group cursor-pointer relative overflow-hidden flex flex-col h-full min-h-[160px]"
+    >
+      <div className="absolute -inset-24 bg-gradient-to-br from-brand-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity blur-2xl pointer-events-none" />
+
+      <div className="flex-1 relative z-10">
+        <h3 className="text-lg font-semibold text-white group-hover:text-brand-400 transition-colors">{project.name || project.title}</h3>
+        <p className="text-sm text-gray-400 mt-1 line-clamp-2">{project.description || 'No description yet'}</p>
       </div>
 
-      <div className="mt-4">
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
-          <div className="h-2 bg-gradient-to-r from-indigo-500 to-cyan-400" style={{width: `${project.progress || 0}%`}} />
+      <div className="mt-6 relative z-10">
+        <div className="flex items-center justify-between text-xs text-gray-400 mb-2 font-medium">
+          <div className="flex items-center gap-1.5"><FiUsers size={14}/> {project.members?.length || 1} Members</div>
+          <div className="flex items-center gap-1.5"><FiCheckSquare size={14}/> {project.tasks?.length || 0} Tasks</div>
+        </div>
+        <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 1, ease: 'easeOut' }}
+            className="h-full bg-brand-500" 
+          />
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }
