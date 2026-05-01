@@ -1,18 +1,21 @@
 import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
-import { FiHome, FiGrid, FiList, FiLogOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiHome, FiGrid, FiList, FiLogOut, FiChevronLeft, FiChevronRight, FiUser, FiUsers } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
 import useStore from '../stores/useStore'
 
-const items = [
-  { to: '/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
-  { to: '/projects', icon: <FiGrid size={20} />, label: 'Projects' },
-  { to: '/kanban', icon: <FiList size={20} />, label: 'Kanban' },
-]
-
 export default function Sidebar() {
   const logout = useStore(state => state.logout)
+  const user = useStore(state => state.user)
   const [collapsed, setCollapsed] = useState(false)
+
+  const items = [
+    { to: '/dashboard', icon: <FiHome size={20} />, label: 'Dashboard' },
+    { to: '/projects', icon: <FiGrid size={20} />, label: 'Projects' },
+    { to: '/kanban', icon: <FiList size={20} />, label: 'Kanban' },
+    ...(user?.role === 'Admin' ? [{ to: '/team', icon: <FiUsers size={20} />, label: 'Team' }] : []),
+    { to: '/profile', icon: <FiUser size={20} />, label: 'Profile' },
+  ]
 
   return (
     <motion.aside 

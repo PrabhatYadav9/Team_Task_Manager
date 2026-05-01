@@ -19,6 +19,7 @@ const taskSchema = new mongoose.Schema(
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: [true, 'Please assign the task to a user'],
     },
     status: {
       type: String,
@@ -27,6 +28,7 @@ const taskSchema = new mongoose.Schema(
     },
     dueDate: {
       type: Date,
+      required: [true, 'Please provide a due date'],
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,

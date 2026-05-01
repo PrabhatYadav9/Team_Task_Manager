@@ -118,7 +118,9 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      // or if origin is explicitly allowed, or if it's ANY localhost port (to fix Vite port bumping)
+      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked for origin ${origin}`));

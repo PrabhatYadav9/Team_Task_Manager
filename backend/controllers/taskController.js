@@ -4,27 +4,35 @@ const { body, validationResult } = require('express-validator');
 
 // @desc    Create a new task
 // @route   POST /api/tasks
-// @access  Private/Admin
+// @access  Private
 exports.createTask = async (req, res, next) => {
   try {
-    // Validation
+    console.log('[DEBUG] Incoming task creation request:', req.body);
+
+    // Strict Validation
     await body('title').trim().notEmpty().withMessage('Task title is required').run(req);
     await body('projectId').notEmpty().withMessage('Project ID is required').run(req);
+    await body('assignedTo').notEmpty().withMessage('Assignee is required').run(req);
+    await body('dueDate').notEmpty().withMessage('Due date is required').run(req);
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, errors: errors.array() });
+      console.log('[DEBUG] Validation errors:', errors.array());
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: errors.array() });
     }
 
     const { title, description, projectId, assignedTo, status, dueDate } = req.body;
 
-    // Check if project exists and user is authorized
+    // Project dependency check
     const project = await Project.findById(projectId);
     if (!project) {
+      console.log('[DEBUG] Project not found for ID:', projectId);
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    if (project.owner.toString() !== req.user.id) {
+    // Role-based authorization - allow Owner OR Admin members
+    if (project.owner.toString() !== req.user.id && req.user.role !== 'Admin') {
+      console.log('[DEBUG] User is not authorized to create tasks in this project');
       return res.status(403).json({ success: false, message: 'Not authorized to create tasks in this project' });
     }
 
@@ -41,13 +49,15 @@ exports.createTask = async (req, res, next) => {
     await task.save();
     await task.populate('assignedTo createdBy', 'name email');
 
+    console.log('[DEBUG] Task created successfully:', task._id);
     res.status(201).json({
       success: true,
       message: 'Task created successfully',
       data: task,
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error('[DEBUG] Server error during task creation:', error.message);
+    res.status(500).json({ success: false, message: 'Server error: ' + error.message });
   }
 };
 
@@ -59,17 +69,24 @@ exports.getTasksByProject = async (req, res, next) => {
     const { projectId } = req.params;
     const { status } = req.query;
 
-    // Check if project exists and user is authorized
+    // Check if project exists
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    if (!project.members.some((m) => m.toString() === req.user.id) && project.owner.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized to view tasks in this project' });
+    let queryObj = { projectId };
+    
+    // Authorization logic:
+    // 1. If Admin or Project Owner or Project Member, they can see all tasks (filtered by status/query).
+    // 2. If not a member, they can still access this endpoint, but queryObj will restrict them to only tasks assigned to or created by them.
+    const isAuthorized = project.members.some((m) => m.toString() === req.user.id) || project.owner.toString() === req.user.id || req.user.role === 'Admin';
+
+    if (!isAuthorized) {
+      queryObj.$or = [{ assignedTo: req.user.id }, { createdBy: req.user.id }];
     }
 
-    let query = Task.find({ projectId });
+    let query = Task.find(queryObj);
 
     if (status) {
       query = query.where('status').equals(status);
@@ -126,12 +143,13 @@ exports.updateTask = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
 
-    // Check if user is authorized (owner or assigned)
+    // Check if user is authorized (owner or assigned or Admin)
     const project = await Project.findById(task.projectId);
     const isOwner = project.owner.toString() === req.user.id;
     const isAssigned = task.assignedTo && task.assignedTo.toString() === req.user.id;
+    const isAdmin = req.user.role === 'Admin';
 
-    if (!isOwner && !isAssigned) {
+    if (!isOwner && !isAssigned && !isAdmin) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this task' });
     }
 
@@ -191,7 +209,11 @@ exports.getDashboardStats = async (req, res, next) => {
   try {
     const { projectId } = req.query;
 
-    let query = { createdBy: req.user.id };
+    let query = {};
+    if (req.user.role !== 'Admin') {
+      query.$or = [{ assignedTo: req.user.id }, { createdBy: req.user.id }];
+    }
+    
     if (projectId) {
       query.projectId = projectId;
     }
@@ -217,6 +239,25 @@ exports.getDashboardStats = async (req, res, next) => {
         doneTasks,
         overdueTasks,
       },
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// @desc    Get all tasks in the system
+// @route   GET /api/tasks/all
+// @access  Private/Admin
+exports.getAllTasks = async (req, res, next) => {
+  try {
+    const tasks = await Task.find()
+      .populate('assignedTo createdBy projectId', 'name email title')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: tasks.length,
+      data: tasks,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

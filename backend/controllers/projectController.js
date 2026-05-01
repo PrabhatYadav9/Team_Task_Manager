@@ -17,11 +17,17 @@ exports.createProject = async (req, res, next) => {
 
     const { name, description, members } = req.body;
 
+    let projectMembers = members;
+    if (!projectMembers) {
+      const allUsers = await User.find().select('_id');
+      projectMembers = allUsers.map(u => u._id);
+    }
+
     const project = new Project({
       name,
       description,
       owner: req.user.id,
-      members: members || [req.user.id],
+      members: projectMembers,
     });
 
     await project.save();
@@ -42,9 +48,20 @@ exports.createProject = async (req, res, next) => {
 // @access  Private
 exports.getProjects = async (req, res, next) => {
   try {
-    const projects = await Project.find({
-      $or: [{ owner: req.user.id }, { members: req.user.id }],
-    })
+    let query = {};
+    if (req.user.role !== 'Admin') {
+      const Task = require('../models/Task');
+      const userTasks = await Task.find({ assignedTo: req.user.id }).select('projectId');
+      const projectIds = userTasks.map(t => t.projectId);
+
+      query.$or = [
+        { owner: req.user.id },
+        { members: req.user.id },
+        { _id: { $in: projectIds } }
+      ];
+    }
+
+    const projects = await Project.find(query)
       .populate('owner members', 'name email')
       .sort({ createdAt: -1 });
 
@@ -69,9 +86,13 @@ exports.getProjectById = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Project not found' });
     }
 
-    // Check if user is member or owner
-    if (!project.members.some((m) => m._id.toString() === req.user.id) && project.owner._id.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Not authorized to access this project' });
+    // Check if user is member or owner or has tasks assigned
+    if (req.user.role !== 'Admin' && !project.members.some((m) => m._id.toString() === req.user.id) && project.owner._id.toString() !== req.user.id) {
+      const Task = require('../models/Task');
+      const hasTask = await Task.findOne({ projectId: project._id, assignedTo: req.user.id });
+      if (!hasTask) {
+        return res.status(403).json({ success: false, message: 'Not authorized to access this project' });
+      }
     }
 
     res.status(200).json({

@@ -1,9 +1,11 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import useStore from '../stores/useStore'
 import { FiBell, FiSearch } from 'react-icons/fi'
 
 export default function Topbar() {
   const user = useStore(state => state.user)
+  const navigate = useNavigate()
 
   return (
     <header className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-transparent relative z-20">
@@ -24,7 +26,7 @@ export default function Topbar() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full border border-[#0a0a0a]"></span>
         </button>
 
-        <div className="flex items-center gap-3 bg-white/5 border border-white/10 py-1.5 px-2 rounded-full backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors">
+        <div onClick={() => navigate('/profile')} className="flex items-center gap-3 bg-white/5 border border-white/10 py-1.5 px-2 rounded-full backdrop-blur-md cursor-pointer hover:bg-white/10 transition-colors">
           <img src={`https://api.dicebear.com/6.x/initials/svg?seed=${user?.name || 'User'}&backgroundColor=6366f1`} alt="avatar" className="w-8 h-8 rounded-full" />
           <div className="hidden sm:block pr-2">
             <div className="text-sm font-medium text-gray-200 leading-tight">{user?.name || 'User'}</div>

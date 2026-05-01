@@ -1,5 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 import useStore from '../stores/useStore'
 import api from '../services/apiClient'
 
@@ -8,6 +9,7 @@ export default function Signup(){
   const navigate = useNavigate()
   const [error, setError] = React.useState('')
   const [loading, setLoading] = React.useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const submit = async (e) => {
     e.preventDefault()
@@ -20,12 +22,17 @@ export default function Signup(){
         name: formData.get('name'),
         email: formData.get('email'),
         password: formData.get('password'),
+        role: formData.get('role'),
       })
 
       setSession({ user: data.user, token: data.token })
       navigate('/dashboard')
     } catch (err) {
-      setError(err.response?.data?.message || 'Signup failed')
+      if (!err.response) {
+        setError('Network Error: The backend server is not reachable. Please ensure it is running.')
+      } else {
+        setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Signup failed')
+      }
     } finally {
       setLoading(false)
     }
@@ -59,7 +66,29 @@ export default function Signup(){
             </div>
             <div>
               <label className="text-sm font-medium text-gray-300">Password</label>
-              <input name="password" required type="password" className="mt-2 w-full p-3 rounded-lg border border-white/10 bg-black/50 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all" />
+              <div className="relative mt-2">
+                <input
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  className="w-full rounded-lg border border-white/10 bg-black/50 px-4 py-3 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label className="text-sm font-medium text-gray-300">Account Role</label>
+              <select name="role" required className="mt-2 w-full p-3 rounded-lg border border-white/10 bg-black/50 text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all">
+                <option value="Admin">Admin (Can create projects and tasks)</option>
+                <option value="Member">Member (Can only view and update tasks)</option>
+              </select>
             </div>
 
             <button disabled={loading} className="w-full py-3 mt-6 rounded-xl bg-brand-500 hover:bg-brand-600 text-white font-semibold disabled:opacity-60 transition-colors shadow-glow">
