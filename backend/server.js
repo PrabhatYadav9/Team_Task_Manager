@@ -119,8 +119,13 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps or curl requests)
-      // or if origin is explicitly allowed, or if it's ANY localhost port (to fix Vite port bumping)
-      if (!origin || allowedOrigins.includes(origin) || origin.startsWith('http://localhost:')) {
+      // or if origin is explicitly allowed, or if it's ANY localhost port, or ANY vercel preview domain
+      if (
+        !origin || 
+        allowedOrigins.includes(origin) || 
+        origin.startsWith('http://localhost:') || 
+        origin.endsWith('.vercel.app')
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS blocked for origin ${origin}`));
