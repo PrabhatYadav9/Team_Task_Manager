@@ -22,6 +22,10 @@ const connectDB = async () => {
       usingFallback = false;
     } catch (primaryError) {
       console.warn(`Primary MongoDB connection failed: ${primaryError.message}`);
+      if (process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT) {
+        console.error('Cannot use in-memory fallback in production. Exiting.');
+        process.exit(1);
+      }
       const fallbackUri = await getFallbackUri();
       conn = await mongoose.connect(fallbackUri);
       console.log('Connected to in-memory MongoDB fallback');
