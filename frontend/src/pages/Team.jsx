@@ -2,6 +2,7 @@ import React from 'react'
 import api from '../services/apiClient'
 import useStore from '../stores/useStore'
 import { FiUsers, FiFilter, FiCheckCircle, FiClock, FiUser } from 'react-icons/fi'
+import UserPicker from '../components/ui/UserPicker'
 
 export default function Team() {
   const user = useStore(state => state.user)
@@ -51,18 +52,13 @@ export default function Team() {
           <h2 className="text-2xl font-semibold tracking-tight text-white">Team Overview</h2>
           <p className="text-sm text-gray-400 mt-1">View all members and their assigned tasks.</p>
         </div>
-        <div className="flex items-center gap-3 bg-surface/50 p-1.5 rounded-xl border border-white/10 backdrop-blur-md">
-          <FiFilter className="text-gray-400 ml-2" />
-          <select 
+        <div className="w-[280px]">
+          <UserPicker 
             value={selectedUserId}
-            onChange={(e) => setSelectedUserId(e.target.value)}
-            className="bg-transparent text-sm text-gray-200 outline-none pr-4 py-1 appearance-none cursor-pointer"
-          >
-            <option value="all">All Members</option>
-            {users.map(u => (
-              <option key={u._id} value={u._id}>{u.name} ({u.role})</option>
-            ))}
-          </select>
+            onChange={val => setSelectedUserId(val)}
+            users={[{ _id: 'all', name: 'All Members', role: 'System' }, ...users]}
+            placeholder="Filter members"
+          />
         </div>
       </div>
 

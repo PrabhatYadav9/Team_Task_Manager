@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import api from '../services/apiClient'
 import useStore from '../stores/useStore'
 import toast from 'react-hot-toast'
+import UserPicker from '../components/ui/UserPicker'
 
 const columns = [
   { id: 'todo', label: 'To Do', tone: 'from-slate-500 to-slate-400' },
@@ -183,14 +184,11 @@ function TaskModal({ task, onClose, onStatusChange, users, onSave, isAdmin }) {
               {isEditing ? (
                 <div className="space-y-2">
                   <p className="text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 font-semibold">Assignee</p>
-                  <select 
+                  <UserPicker 
                     value={form.assignedTo} 
-                    onChange={e => setForm({...form, assignedTo: e.target.value})}
-                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-all"
-                  >
-                    <option value="" disabled>Select User</option>
-                    {users.map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
-                  </select>
+                    onChange={val => setForm({...form, assignedTo: val})} 
+                    users={users} 
+                  />
                 </div>
               ) : (
                 <InfoPill label="Assignee" value={task.assignedTo?.name || 'Unassigned'} />
@@ -307,17 +305,12 @@ function CreateTaskModal({ open, projectName, users = [], onClose, onSubmit, for
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-600 dark:text-slate-300">Assignee <span className="text-red-400">*</span></label>
-              <select
-                value={form.assignedTo}
-                onChange={(e) => setForm((current) => ({ ...current, assignedTo: e.target.value }))}
-                className="mt-2 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none dark:border-white/10 dark:bg-[#071028]"
-              >
-                <option value="" disabled>Select member</option>
-                {users.map((member) => (
-                  <option key={member._id} value={member._id}>{member.name} ({member.role})</option>
-                ))}
-              </select>
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300 mb-2 block">Assignee <span className="text-red-400">*</span></label>
+              <UserPicker 
+                value={form.assignedTo} 
+                onChange={val => setForm((current) => ({ ...current, assignedTo: val }))} 
+                users={users} 
+              />
             </div>
 
             <div>
