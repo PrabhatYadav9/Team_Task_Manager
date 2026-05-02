@@ -32,25 +32,25 @@ function TaskCard({ task, onOpen }) {
       {...attributes}
       {...listeners}
       onClick={() => onOpen(task)}
-      className={`group w-full rounded-2xl border border-white/10 bg-white/90 dark:bg-[#071028] p-4 text-left shadow-card backdrop-blur-sm transition-all duration-300 ${isDragging ? 'opacity-60 ring-2 ring-cyan-400 scale-105' : 'hover:-translate-y-1 hover:shadow-glow hover:border-white/20'}`}
+      className={`group w-full rounded-2xl border border-white/10 bg-[#071028]/90 p-4 text-left shadow-card backdrop-blur-sm transition-all duration-300 ${isDragging ? 'opacity-60 ring-2 ring-cyan-400 scale-105' : 'hover:-translate-y-1 hover:shadow-glow hover:border-white/20'}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h4 className="font-semibold leading-6 text-slate-900 dark:text-white group-hover:text-cyan-400 transition-colors">{task.title}</h4>
-          {task.description ? <p className="mt-1 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">{task.description}</p> : null}
+          <h4 className="font-semibold leading-6 text-white group-hover:text-cyan-400 transition-colors">{task.title}</h4>
+          {task.description ? <p className="mt-1 line-clamp-2 text-sm text-slate-400">{task.description}</p> : null}
         </div>
         <span className={`shrink-0 rounded-full border px-2 py-1 text-[10px] font-bold uppercase tracking-wider ${isOverdue ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'border-slate-200/10 bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-300'}`}>
           {isOverdue ? 'Overdue' : task.status.replace('-', ' ')}
         </span>
       </div>
 
-      <div className="mt-4 flex items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+      <div className="mt-4 flex items-center justify-between gap-3 text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-cyan-400 text-white shadow-glow">
             {task.assignedTo?.name ? task.assignedTo.name.slice(0, 1).toUpperCase() : <FiUser />}
           </div>
           <div>
-            <div className="font-medium text-slate-700 dark:text-slate-200">{task.assignedTo?.name || 'Unassigned'}</div>
+            <div className="font-medium text-slate-200">{task.assignedTo?.name || 'Unassigned'}</div>
             <div className={`flex items-center gap-1 ${isOverdue ? 'text-red-400 font-medium' : ''}`}>
               <FiCalendar /> {formatDate(task.dueDate)}
             </div>
@@ -69,11 +69,11 @@ function Column({ column, tasks, onOpen }) {
   return (
     <section
       ref={setNodeRef}
-      className={`min-h-[32rem] rounded-3xl border border-white/10 bg-white/60 dark:bg-[#071028]/80 p-4 shadow-card backdrop-blur-sm ${isOver ? 'ring-2 ring-cyan-400/60' : ''}`}
+      className={`min-h-[32rem] rounded-3xl border border-white/5 bg-[#071028]/60 p-4 shadow-card backdrop-blur-sm ${isOver ? 'ring-2 ring-cyan-400/60' : ''}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{column.label}</h3>
+          <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">{column.label}</h3>
           <p className="mt-1 text-xs text-slate-400">{tasks.length} tasks</p>
         </div>
         <div className={`h-2.5 w-2.5 rounded-full bg-gradient-to-r ${column.tone}`} />
@@ -90,7 +90,7 @@ function Column({ column, tasks, onOpen }) {
 
 function EmptyColumn({ label }) {
   return (
-    <div className="flex flex-col min-h-[10rem] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/30 px-4 py-8 text-center text-sm text-slate-400 dark:bg-white/5">
+    <div className="flex flex-col min-h-[10rem] items-center justify-center rounded-2xl border border-dashed border-white/5 bg-white/5 px-4 py-8 text-center text-sm text-slate-400">
       <FiList className="text-3xl mb-2 opacity-50" />
       <p>Drop tasks into {label.toLowerCase()}</p>
     </div>
@@ -526,17 +526,17 @@ export default function Kanban() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Project workflow</p>
+          <p className="text-sm text-slate-400">Project workflow</p>
           <h2 className="text-3xl font-semibold">Kanban board</h2>
         </div>
 
         <div className="w-full max-w-sm">
-          <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">Project filter</label>
+          <label className="mb-2 block text-xs uppercase tracking-[0.18em] text-slate-400">Project filter</label>
           <div className="flex gap-3">
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 dark:border-white/10 dark:bg-[#071028] dark:text-white"
+              className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-[#071028] px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 text-white"
             >
               {projects.map((project) => (
                 <option key={project._id} value={project._id}>
@@ -559,24 +559,24 @@ export default function Kanban() {
       </div>
 
       {selectedProject ? (
-        <div className="rounded-3xl border border-white/10 bg-white/60 px-5 py-4 text-sm text-slate-600 shadow-card backdrop-blur dark:bg-[#071028]/60 dark:text-slate-300">
-          Showing tasks for <span className="font-semibold text-slate-900 dark:text-white">{selectedProject.name}</span>. Drag cards across columns to update their status.
+        <div className="rounded-3xl border border-white/10 bg-[#071028]/60 px-5 py-4 text-sm text-slate-300 shadow-card backdrop-blur">
+          Showing tasks for <span className="font-semibold text-white">{selectedProject.name}</span>. Drag cards across columns to update their status.
         </div>
       ) : null}
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-3">
           {columns.map((column) => (
-            <div key={column.id} className="h-[32rem] rounded-3xl bg-slate-200/70 dark:bg-slate-800/70 animate-pulse" />
+            <div key={column.id} className="h-[32rem] rounded-3xl bg-slate-800/70 animate-pulse" />
           ))}
         </div>
       ) : projects.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white/70 py-20 px-4 text-center dark:border-white/10 dark:bg-white/5">
+        <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-white/5 py-20 px-4 text-center">
           <div className="w-16 h-16 bg-brand-500/10 text-brand-500 rounded-full flex items-center justify-center mb-4">
             <FiAlertCircle size={32} />
           </div>
           <h3 className="text-xl font-semibold">No projects available</h3>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400 max-w-md">You need a project to start organizing tasks. Create a new project from the Projects tab to unlock the Kanban board.</p>
+          <p className="mt-2 text-sm text-slate-400 max-w-md">You need a project to start organizing tasks. Create a new project from the Projects tab to unlock the Kanban board.</p>
         </div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
