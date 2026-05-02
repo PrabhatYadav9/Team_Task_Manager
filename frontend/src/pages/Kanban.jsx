@@ -69,7 +69,7 @@ function Column({ column, tasks, onOpen }) {
   return (
     <section
       ref={setNodeRef}
-      className={`min-h-[32rem] rounded-3xl border border-white/5 bg-surface/40 p-4 shadow-surface backdrop-blur-sm ${isOver ? 'ring-2 ring-cyan-400/60' : ''}`}
+      className={`min-h-[32rem] rounded-3xl border border-white/10 bg-white/60 dark:bg-[#071028]/80 p-4 shadow-card backdrop-blur-sm ${isOver ? 'ring-2 ring-cyan-400/60' : ''}`}
     >
       <div className="mb-4 flex items-center justify-between">
         <div>
@@ -90,7 +90,7 @@ function Column({ column, tasks, onOpen }) {
 
 function EmptyColumn({ label }) {
   return (
-    <div className="flex flex-col min-h-[10rem] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/5 px-4 py-8 text-center text-sm text-gray-400">
+    <div className="flex flex-col min-h-[10rem] items-center justify-center rounded-2xl border border-dashed border-white/10 bg-white/30 px-4 py-8 text-center text-sm text-slate-400 dark:bg-white/5">
       <FiList className="text-3xl mb-2 opacity-50" />
       <p>Drop tasks into {label.toLowerCase()}</p>
     </div>
@@ -536,7 +536,7 @@ export default function Kanban() {
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="min-w-0 flex-1 rounded-2xl border border-white/10 bg-surface/40 px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 text-white"
+              className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm shadow-sm outline-none transition focus:border-cyan-400 dark:border-white/10 dark:bg-[#071028] dark:text-white"
             >
               {projects.map((project) => (
                 <option key={project._id} value={project._id}>
@@ -559,15 +559,15 @@ export default function Kanban() {
       </div>
 
       {selectedProject ? (
-        <div className="rounded-2xl border border-brand-500/20 bg-brand-500/10 px-5 py-4 text-sm text-gray-300 shadow-surface">
-          Showing tasks for <span className="font-semibold text-white">{selectedProject.name}</span>. Drag cards across columns to update their status.
+        <div className="rounded-3xl border border-white/10 bg-white/60 px-5 py-4 text-sm text-slate-600 shadow-card backdrop-blur dark:bg-[#071028]/60 dark:text-slate-300">
+          Showing tasks for <span className="font-semibold text-slate-900 dark:text-white">{selectedProject.name}</span>. Drag cards across columns to update their status.
         </div>
       ) : null}
 
       {loading ? (
         <div className="grid gap-4 md:grid-cols-3">
           {columns.map((column) => (
-            <div key={column.id} className="h-[32rem] rounded-3xl skeleton" />
+            <div key={column.id} className="h-[32rem] rounded-3xl bg-slate-200/70 dark:bg-slate-800/70 animate-pulse" />
           ))}
         </div>
       ) : projects.length === 0 ? (
