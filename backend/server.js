@@ -145,6 +145,11 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({ success: true, message: 'Server is running' });
 });
 
+// Root endpoint for friendly message when accessing API directly
+app.get('/', (req, res) => {
+  res.status(200).json({ success: true, message: 'Team Task Manager API is running. Access endpoints via /api/...' });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, message: 'Route not found' });

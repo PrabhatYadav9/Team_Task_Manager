@@ -1,0 +1,6 @@
+
+> team-task-manager-backend@1.0.0 start
+> node server.js
+
+MongoDB connected: ac-2zavwul-shard-00-00.an6an6h.mongodb.net
+Server running on port 5001
