@@ -39,7 +39,7 @@ You can test the live application directly: [Login Page](https://team-task-manag
 - **Database**: MongoDB Atlas
 - **Hosting**: 
   - Frontend deployed on **Vercel**
-  - Backend deployed on **Railway**
+  - Backend deployed on **Vercel**
 
 ---
 
