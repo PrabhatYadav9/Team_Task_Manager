@@ -2,6 +2,8 @@
 
 A production-ready full-stack task management application built with React, Node.js, Express, MongoDB, and JWT authentication.
 
+🌐 **Live Demo:** [https://team-task-manager-8wga.vercel.app/](https://team-task-manager-8wga.vercel.app/)
+
 ## 🚀 Features
 
 - **User Authentication**: Secure signup/login with JWT and bcrypt
@@ -53,6 +55,8 @@ Visit `http://localhost:5173` in your browser.
 - [Postman Collection](./POSTMAN_COLLECTION.md) - Postman API testing collection
 
 ## 🔐 Demo Credentials
+
+You can test the application live here: [Login Page](https://team-task-manager-9l3equru8-prabhaty701-5812s-projects.vercel.app/login)
 
 **Admin Account:**
 - Email: `admin@example.com`
